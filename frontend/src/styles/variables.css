@@ -1,13 +1,13 @@
 :root {
   /* Colors - Primary */
-  --color-primary: #1a365d;
-  --color-primary-light: #2c5282;
-  --color-primary-dark: #0f2744;
+  --color-primary: #7A2A3C;
+  --color-primary-light: #C27A87;
+  --color-primary-dark: #411717;
 
   /* Colors - Accent */
-  --color-accent: #c9a227;
-  --color-accent-light: #d4b545;
-  --color-accent-dark: #b8922a;
+  --color-accent: #9c4a63;
+  --color-accent-light: #C27A87;
+  --color-accent-dark: #4A1120;
 
   /* Colors - Text */
   --color-text: #2d3748;
@@ -15,16 +15,17 @@
   --color-text-muted: #a0aec0;
 
   /* Colors - Background */
-  --color-bg: #ffffff;
-  --color-bg-alt: #f7fafc;
-  --color-bg-dark: #0f172a;
+  --color-bg: #F5EDEE;
+  --color-bg-alt: #F9F4F5;
+  --color-bg-dark: #5a1e2b;
 
   /* Colors - Functional */
-  --color-success: #48bb78;
+  --color-success: #499167;
   --color-error: #f56565;
   --color-warning: #ed8936;
   --color-info: #4299e1;
-  --color-whatsapp: #25d366;
+  --color-whatsapp: #9c4a63;
+  --color-whatsapp-dark: #7A2A3C;
 
   /* Typography - Cambia aquí para usar otra fuente */
   --font-primary: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;

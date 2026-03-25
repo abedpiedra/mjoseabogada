@@ -3,22 +3,12 @@
   min-height: 100vh;
   display: flex;
   align-items: center;
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+  background-color: #7A2A3C;
   padding-top: var(--header-height);
   position: relative;
   overflow: hidden;
 }
 
-.hero::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="rgba(255,255,255,0.03)" width="50" height="50"/><rect fill="rgba(255,255,255,0.03)" x="50" y="50" width="50" height="50"/></svg>');
-  background-size: 50px 50px;
-}
 
 .hero__container {
   display: grid;
@@ -37,7 +27,7 @@
 }
 
 .hero__content h1 span {
-  color: var(--color-accent);
+  color: #da8a9e;
 }
 
 .hero__content p {
@@ -122,6 +112,33 @@
   color: var(--color-text-light);
   line-height: var(--leading-relaxed);
   margin: 0;
+  margin-bottom: var(--spacing-lg);
+}
+
+.service-card__whatsapp {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: 0.625rem 1.25rem;
+  background-color: var(--color-whatsapp);
+  color: white;
+  border-radius: var(--radius-md);
+  font-weight: var(--font-medium);
+  font-size: var(--text-sm);
+  transition: all var(--transition-normal);
+  text-decoration: none;
+}
+
+.service-card__whatsapp:hover {
+  background-color: var(--color-whatsapp-dark);
+  transform: translateY(-2px);
+  color: white;
+}
+
+.service-card__whatsapp svg {
+  width: 18px;
+  height: 18px;
+  fill: white;
 }
 
 /* About Section */
@@ -213,7 +230,7 @@
 
 .stat-item h3 {
   font-size: var(--text-5xl);
-  color: var(--color-accent);
+  color: var(--color-accent-light);
   margin-bottom: var(--spacing-sm);
 }
 
@@ -281,7 +298,7 @@
 .contact-item__icon {
   width: 50px;
   height: 50px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--color-primary-light);
   border-radius: var(--radius-lg);
   display: flex;
   align-items: center;
@@ -292,7 +309,7 @@
 .contact-item__icon svg {
   width: 24px;
   height: 24px;
-  fill: var(--color-accent);
+  fill: var(--color-primary);
 }
 
 .contact-item__text h4 {

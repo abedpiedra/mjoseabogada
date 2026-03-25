@@ -16,7 +16,7 @@
 
 .whatsapp-btn:hover {
   transform: scale(1.1);
-  box-shadow: 0 6px 30px rgba(37, 211, 102, 0.5);
+  box-shadow: 0 6px 30px var(--color-whatsapp-dark);
 }
 
 .whatsapp-btn svg {
