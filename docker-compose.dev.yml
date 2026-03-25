@@ -1,0 +1,28 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: asesoria-mysql-dev
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: mjose$4sesorias_13
+      MYSQL_DATABASE: asesoria_legal
+      MYSQL_USER: asesoria
+      MYSQL_PASSWORD: mjose$4sesorias_13
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data_dev:/var/lib/mysql
+    networks:
+      - asesoria-network-dev
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mysql_data_dev:
+
+networks:
+  asesoria-network-dev:
+    driver: bridge

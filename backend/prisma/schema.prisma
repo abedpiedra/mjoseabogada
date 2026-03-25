@@ -1,0 +1,46 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model ContactSubmission {
+  id        Int      @id @default(autoincrement())
+  nombre    String   @db.VarChar(100)
+  email     String   @db.VarChar(100)
+  telefono  String?  @db.VarChar(20)
+  servicio  String?  @db.VarChar(100)
+  mensaje   String?  @db.Text
+  status    String   @default("pending") @db.VarChar(20)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("contact_submissions")
+}
+
+model WhatsAppMessage {
+  id          Int      @id @default(autoincrement())
+  phoneNumber String   @map("phone_number") @db.VarChar(20)
+  message     String   @db.Text
+  direction   String   @db.VarChar(10)
+  status      String   @default("sent") @db.VarChar(20)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("whatsapp_messages")
+}
+
+model Service {
+  id          Int      @id @default(autoincrement())
+  nombre      String   @db.VarChar(100)
+  descripcion String?  @db.Text
+  icono       String?  @db.VarChar(50)
+  activo      Boolean  @default(true)
+  orden       Int      @default(0)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("services")
+}

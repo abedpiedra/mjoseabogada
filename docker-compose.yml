@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: asesoria-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-asesoria_legal}
+      MYSQL_USER: ${MYSQL_USER:-asesoria}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-asesoria123}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database/init:/docker-entrypoint-initdb.d
+    networks:
+      - asesoria-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: asesoria-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      HOST: 0.0.0.0
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: ${MYSQL_DATABASE:-asesoria_legal}
+      DB_USER: ${MYSQL_USER:-asesoria}
+      DB_PASSWORD: ${MYSQL_PASSWORD:-asesoria123}
+      WHATSAPP_SESSION_PATH: /app/whatsapp-session
+      AUTO_REPLY_ENABLED: ${AUTO_REPLY_ENABLED:-true}
+      AUTO_REPLY_MESSAGE: ${AUTO_REPLY_MESSAGE:-Gracias por contactarnos}
+      CONTACT_PHONE: ${CONTACT_PHONE:-+56912345678}
+      CONTACT_EMAIL: ${CONTACT_EMAIL:-contacto@ejemplo.cl}
+    ports:
+      - "5000:5000"
+    volumes:
+      - whatsapp_session:/app/whatsapp-session
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - asesoria-network
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: asesoria-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - asesoria-network
+
+volumes:
+  mysql_data:
+  whatsapp_session:
+
+networks:
+  asesoria-network:
+    driver: bridge
