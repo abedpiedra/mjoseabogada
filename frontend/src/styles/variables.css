@@ -26,9 +26,9 @@
   --color-info: #4299e1;
   --color-whatsapp: #25d366;
 
-  /* Typography */
-  --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-heading: 'Playfair Display', Georgia, serif;
+  /* Typography - Cambia aquí para usar otra fuente */
+  --font-primary: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-heading: sans-serif;
 
   /* Font Sizes */
   --text-xs: 0.75rem;
