@@ -11,38 +11,30 @@ Plataforma web de asesoría legal para **María José Solorza Salas**:
 | Framework | Next.js 14+ (App Router) |
 | Frontend | React 18 + TypeScript |
 | Backend | Next.js API Routes |
-| Base de datos | MySQL 8.0 (fallback JSON) |
+| Base de datos | PostgreSQL (Neon) |
 | ORM | Prisma |
 | Validación | Zod |
-| Mensajería | WhatsApp Web API (whatsapp-web.js) |
-| Contenedores | Docker + Docker Compose |
+| Deploy | Vercel |
 
 ## Visión del Proyecto
 
 ```
-FASE 1 (Actual): Landing + WhatsApp
+FASE 1 (Actual): Landing + Contacto
 ├── Landing page
 ├── Formulario contacto
-├── Botón WhatsApp
-└── Storage MySQL/JSON
+├── Botón WhatsApp (wa.me/)
+└── Storage PostgreSQL
 
-FASE 2 (En desarrollo): Panel Admin
+FASE 2 (Futuro): Panel Admin
 ├── Autenticación
 ├── Dashboard
 ├── Gestión de consultas (CRM)
-└── WhatsApp desde panel
+└── Estadísticas
 
-FASE 3 (Futuro): Automatización
-├── Bot WhatsApp inteligente
-├── Sistema de citas
-├── Recordatorios automáticos
-└── Seguimiento de leads
-
-FASE 4 (Futuro): Portal Clientes
+FASE 3 (Futuro): Portal Clientes
 ├── Login clientes
 ├── Estado de casos
 ├── Documentos
-├── Pagos online
 └── Chat directo
 ```
 
@@ -57,12 +49,7 @@ Abogados/
 │   └── api/                      # API Routes
 │       ├── contact/route.ts      # POST /api/contact
 │       ├── config/route.ts       # GET /api/config
-│       ├── health/route.ts       # GET /api/health
-│       └── whatsapp/
-│           ├── status/route.ts
-│           ├── initialize/route.ts
-│           ├── disconnect/route.ts
-│           └── send/route.ts
+│       └── health/route.ts       # GET /api/health
 │
 ├── components/
 │   ├── layout/
@@ -76,16 +63,13 @@ Abogados/
 │   │   ├── CTA.tsx               # Client Component
 │   │   └── Contact.tsx           # Client Component
 │   └── common/
-│       └── WhatsAppButton.tsx    # Client Component
+│       └── WhatsAppButton.tsx    # Client Component (usa wa.me/)
 │
 ├── lib/
 │   ├── prisma.ts                 # Prisma client singleton
 │   ├── config.ts                 # Configuración
 │   ├── storage.ts                # Servicio de almacenamiento
-│   ├── validation.ts             # Schemas Zod
-│   └── whatsapp/
-│       ├── client.ts             # WhatsApp client singleton
-│       └── service.ts            # Funciones del servicio
+│   └── validation.ts             # Schemas Zod
 │
 ├── types/
 │   └── index.ts                  # TypeScript interfaces
@@ -94,20 +78,13 @@ Abogados/
 │   └── variables.css             # Variables CSS
 │
 ├── prisma/
-│   └── schema.prisma             # Schema Prisma
-│
-├── database/
-│   └── init/                     # Scripts SQL iniciales
+│   └── schema.prisma             # Schema Prisma (PostgreSQL)
 │
 ├── public/                       # Assets estáticos
 │
-├── docker-compose.yml            # Producción (2 contenedores)
-├── docker-compose.dev.yml        # Desarrollo (MySQL + phpMyAdmin)
-├── Dockerfile                    # Next.js con Chromium
 ├── next.config.js
 ├── package.json
 ├── tsconfig.json
-├── .env.local                    # Variables de entorno
 └── .env.example                  # Template de variables
 ```
 
@@ -118,18 +95,17 @@ Abogados/
 npm install              # Instalar dependencias
 npm run dev              # Next.js dev server (puerto 3000)
 
-# Docker
-docker-compose -f docker-compose.dev.yml up -d   # MySQL + phpMyAdmin
-docker-compose up -d --build                      # Producción
-
 # Build
 npm run build            # Build Next.js
-npm run start            # Start producción
+npm run start            # Start producción local
 
 # Prisma
 npx prisma generate      # Generar cliente
-npx prisma migrate dev   # Crear migración
+npx prisma db push       # Sincronizar schema con BD
 npx prisma studio        # GUI de base de datos
+
+# Deploy
+git push                 # Vercel detecta y despliega automáticamente
 ```
 
 ## Convenciones de Código
@@ -246,19 +222,15 @@ components/
 
 ## Variables de Entorno
 
-### .env.local
+### .env.local (desarrollo)
 ```env
-# Base de datos
-DATABASE_URL="mysql://user:pass@localhost:3306/asesoria_legal"
+# Base de datos (Neon PostgreSQL)
+DATABASE_URL="postgresql://user:pass@host/db?sslmode=require"
+DIRECT_URL="postgresql://user:pass@host/db?sslmode=require"
 
 # Contacto
 CONTACT_PHONE=+56912345678
 CONTACT_EMAIL=contacto@ejemplo.cl
-
-# WhatsApp
-WHATSAPP_SESSION_PATH=./whatsapp-session
-AUTO_REPLY_ENABLED=true
-AUTO_REPLY_MESSAGE=Gracias por contactarnos.
 ```
 
 ## Base de Datos
@@ -266,15 +238,25 @@ AUTO_REPLY_MESSAGE=Gracias por contactarnos.
 ### Modelos Prisma
 ```prisma
 model ContactSubmission  # Formularios recibidos
-model WhatsAppMessage    # Log de mensajes
 model Service            # Servicios ofrecidos
 ```
 
-### Ejecutar Migraciones
+### Sincronizar Schema
 ```bash
-npx prisma migrate dev --name nombre_migracion
-npx prisma generate
+npx prisma db push       # Desarrollo
+npx prisma migrate deploy # Producción
 ```
+
+## Deploy en Vercel
+
+### Pasos
+1. Conectar repositorio en vercel.com
+2. Configurar variables de entorno:
+   - `DATABASE_URL`
+   - `DIRECT_URL`
+   - `CONTACT_PHONE`
+   - `CONTACT_EMAIL`
+3. Deploy automático en cada push
 
 ## Próximos Pasos (Panel Admin)
 

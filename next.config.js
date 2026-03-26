@@ -1,12 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
-
-  // Experimental features
-  experimental: {
-    serverComponentsExternalPackages: ['whatsapp-web.js'],
-  },
-
   // Image optimization
   images: {
     unoptimized: true,

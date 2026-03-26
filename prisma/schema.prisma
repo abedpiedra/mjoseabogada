@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model ContactSubmission {
@@ -19,17 +20,6 @@ model ContactSubmission {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("contact_submissions")
-}
-
-model WhatsAppMessage {
-  id          Int      @id @default(autoincrement())
-  phoneNumber String   @map("phone_number") @db.VarChar(20)
-  message     String   @db.Text
-  direction   String   @db.VarChar(10)
-  status      String   @default("sent") @db.VarChar(20)
-  createdAt   DateTime @default(now()) @map("created_at")
-
-  @@map("whatsapp_messages")
 }
 
 model Service {

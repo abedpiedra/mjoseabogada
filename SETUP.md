@@ -8,16 +8,14 @@ Guía completa para configurar el proyecto de asesoría legal.
 |-----------|---------|-------------|
 | Node.js | 18+ | Sí |
 | npm | 9+ | Sí |
-| Docker | 20+ | No |
-| Docker Compose | 2+ | No |
-| MySQL | 8.0 | No |
+| Cuenta Neon | - | Sí (para BD) |
+| Cuenta Vercel | - | Sí (para deploy) |
 
 ### Verificar instalación
 
 ```bash
 node --version    # v18.x.x o superior
 npm --version     # 9.x.x o superior
-docker --version  # 20.x.x (opcional)
 ```
 
 ### Instalar Node.js
@@ -42,13 +40,18 @@ brew install node
 # 1. Navegar al proyecto
 cd Abogados
 
-# 2. Instalar todas las dependencias
-npm run install:all
+# 2. Instalar dependencias
+npm install
 
 # 3. Configurar variables de entorno
-cp backend/.env.example backend/.env
+cp .env.example .env.local
 
-# 4. Ejecutar
+# 4. Editar .env.local con tus datos de Neon
+
+# 5. Sincronizar base de datos
+npx prisma db push
+
+# 6. Ejecutar
 npm run dev
 ```
 
@@ -56,64 +59,43 @@ Acceder a: http://localhost:3000
 
 ---
 
-## Instalación Detallada
+## Configurar Base de Datos (Neon)
 
-### Paso 1: Dependencias
+### Paso 1: Crear cuenta en Neon
 
-```bash
-# Desde la raíz del proyecto
-npm run install:all
+1. Ir a [neon.tech](https://neon.tech)
+2. Crear cuenta (gratis)
+3. Crear nuevo proyecto
 
-# O manualmente:
-npm install                 # Raíz (concurrently)
-cd frontend && npm install  # Frontend
-cd ../backend && npm install # Backend
-```
+### Paso 2: Obtener credenciales
 
-### Paso 2: Configuración
+1. En el dashboard de Neon, ir a "Connection Details"
+2. Copiar la URL de conexión (Connection string)
+3. Copiar también la Direct connection URL
 
-```bash
-# Copiar archivo de ejemplo
-cp backend/.env.example backend/.env
-
-# Editar con tus datos
-nano backend/.env
-```
-
-### Paso 3: Variables de Entorno
-
-Editar `backend/.env`:
+### Paso 3: Configurar .env.local
 
 ```env
-# Servidor
-PORT=5000
-HOST=0.0.0.0
-NODE_ENV=development
-
-# Base de datos (opcional)
-DB_HOST=localhost
-DB_PORT=3306
-DB_NAME=asesoria_legal
-DB_USER=asesoria
-DB_PASSWORD=asesoria123
-
-# WhatsApp
-WHATSAPP_SESSION_PATH=./whatsapp-session
-AUTO_REPLY_ENABLED=true
-AUTO_REPLY_MESSAGE=Gracias por contactarnos. Te responderemos pronto.
+# Base de datos (Neon PostgreSQL)
+DATABASE_URL="postgresql://user:password@ep-xxx.region.aws.neon.tech/neondb?sslmode=require"
+DIRECT_URL="postgresql://user:password@ep-xxx.region.aws.neon.tech/neondb?sslmode=require"
 
 # Contacto
 CONTACT_PHONE=+56912345678
-CONTACT_EMAIL=tu-email@ejemplo.cl
+CONTACT_EMAIL=contacto@ejemplo.cl
+```
+
+### Paso 4: Crear tablas
+
+```bash
+npx prisma db push
 ```
 
 ---
 
-## Modos de Ejecución
+## Desarrollo Local
 
-### Modo 1: Sin Docker (Recomendado para empezar)
-
-Usa archivo JSON como almacenamiento.
+### Iniciar servidor
 
 ```bash
 npm run dev
@@ -121,71 +103,59 @@ npm run dev
 
 | Servicio | URL |
 |----------|-----|
-| Frontend | http://localhost:3000 |
-| Backend | http://localhost:5000 |
+| Aplicación | http://localhost:3000 |
+| API | http://localhost:3000/api |
 
-### Modo 2: Con Docker (MySQL)
+### Comandos útiles
 
-```bash
-# 1. Iniciar MySQL + phpMyAdmin
-docker-compose -f docker-compose.dev.yml up -d
-
-# 2. Ejecutar la app
-npm run dev
-```
-
-| Servicio | URL |
-|----------|-----|
-| Frontend | http://localhost:3000 |
-| Backend | http://localhost:5000 |
-| phpMyAdmin | http://localhost:8080 |
-| MySQL | localhost:3306 |
-
-**phpMyAdmin:**
-- Usuario: `asesoria`
-- Password: `asesoria123`
-
-### Modo 3: Docker Producción (Todo en contenedores)
-
-```bash
-# Construir y ejecutar
-docker-compose up -d --build
-
-# Ver logs
-docker-compose logs -f
-
-# Detener
-docker-compose down
-```
-
-| Servicio | URL |
-|----------|-----|
-| Frontend | http://localhost:80 |
-| Backend | http://localhost:5000 |
+| Comando | Descripción |
+|---------|-------------|
+| `npm run dev` | Servidor desarrollo |
+| `npm run build` | Build producción |
+| `npm run start` | Iniciar build |
+| `npx prisma studio` | GUI de base de datos |
+| `npx prisma db push` | Sincronizar schema |
+| `npx prisma generate` | Regenerar cliente |
 
 ---
 
-## Acceso en Red Local
+## Deploy en Vercel
 
-El proyecto está configurado para acceso desde otros dispositivos.
-
-### Ver tu IP
+### Paso 1: Subir a GitHub
 
 ```bash
-# Linux
-ip addr | grep inet
-
-# macOS
-ifconfig | grep inet
-
-# Windows
-ipconfig
+git add .
+git commit -m "feat: ready for Vercel deployment"
+git push origin main
 ```
 
-### Acceder desde otro dispositivo
+### Paso 2: Conectar con Vercel
 
-1. Ejecutar: `npm run dev`
-2. En otro dispositivo: `http://TU_IP:3000`
+1. Ir a [vercel.com](https://vercel.com)
+2. "Add New Project"
+3. Importar repositorio de GitHub
+4. Seleccionar el repositorio "Abogados"
+
+### Paso 3: Configurar variables de entorno
+
+En Vercel, ir a Settings > Environment Variables y agregar:
+
+| Variable | Valor |
+|----------|-------|
+| `DATABASE_URL` | Tu URL de Neon (pooled) |
+| `DIRECT_URL` | Tu URL de Neon (direct) |
+| `CONTACT_PHONE` | +56912345678 |
+| `CONTACT_EMAIL` | tu-email@ejemplo.cl |
+
+### Paso 4: Deploy
+
+Click en "Deploy". Vercel construirá y desplegará automáticamente.
+
+### Paso 5: Configurar dominio (opcional)
+
+1. En Vercel, ir a Settings > Domains
+2. Agregar tu dominio personalizado
+3. Configurar DNS según instrucciones
 
 ---
 
@@ -193,28 +163,23 @@ ipconfig
 
 ### 1. Datos de Contacto
 
-**WhatsApp Button** (`frontend/src/components/common/WhatsAppButton.tsx`):
-```tsx
-const WHATSAPP_NUMBER = '56912345678'  // Tu número
-const WHATSAPP_MESSAGE = 'Hola, me gustaría consultar...'
+**Variables de entorno** (`.env.local` o Vercel):
+```env
+CONTACT_PHONE=+56912345678
+CONTACT_EMAIL=tu-email@ejemplo.cl
 ```
 
-**Formulario de Contacto** (`frontend/src/components/sections/Contact.tsx`):
-```tsx
-const contactInfo = [
-  { label: 'Teléfono', value: '+56 9 1234 5678' },
-  { label: 'Email', value: 'tu-email@ejemplo.cl' },
-  { label: 'Ubicación', value: 'Tu ciudad, Chile' },
-]
-```
+**Formulario de Contacto** (`components/sections/Contact.tsx`):
+- Modificar información de ubicación
+- Ajustar campos del formulario
 
 ### 2. Información Personal
 
-**About** (`frontend/src/components/sections/About.tsx`):
+**About** (`components/sections/About.tsx`):
 - Modificar párrafos de biografía
 - Actualizar credenciales
 
-**Stats** (`frontend/src/components/sections/Stats.tsx`):
+**Stats** (`components/sections/Stats.tsx`):
 ```tsx
 const stats = [
   { value: '+500', label: 'Casos Resueltos' },
@@ -225,157 +190,59 @@ const stats = [
 
 ### 3. Servicios
 
-**Services** (`frontend/src/components/sections/Services.tsx`):
+**Services** (`components/sections/Services.tsx`):
 - Modificar array `services`
 - Cambiar títulos, descripciones, iconos
 
 ### 4. Colores y Estilos
 
-**Variables CSS** (`frontend/src/styles/variables.css`):
+**Variables CSS** (`styles/variables.css`):
 ```css
 :root {
-  --color-primary: #1a365d;     /* Azul principal */
-  --color-accent: #c9a227;       /* Dorado */
-  --color-text: #2d3748;         /* Texto */
-  /* ... */
+  --color-primary: #7A2A3C;     /* Color principal */
+  --color-secondary: #1a365d;   /* Color secundario */
+  --color-accent: #c9a227;      /* Dorado/acento */
 }
 ```
-
----
-
-## Integración WhatsApp
-
-### Activar WhatsApp Bot
-
-1. **Editar servicio** (`backend/src/services/whatsapp.ts`):
-   - Descomentar el código dentro de `initializeWhatsApp()`
-
-2. **Activar en servidor** (`backend/src/index.ts`):
-   ```typescript
-   // Cambiar de:
-   // initializeWhatsApp()
-   // A:
-   initializeWhatsApp()
-   ```
-
-3. **Reiniciar y escanear QR**:
-   ```bash
-   npm run dev:backend
-   # Escanear QR que aparece en terminal
-   ```
-
-### Funcionalidades
-
-- **Auto-respuesta**: Responde automáticamente a mensajes nuevos
-- **Notificaciones**: Avisa cuando llega un formulario
-- **API de envío**: `POST /api/whatsapp/send`
-
----
-
-## Agregar Nuevas Páginas
-
-### Ejemplo: Página de Blog
-
-1. **Crear componente**:
-```tsx
-// frontend/src/pages/Blog.tsx
-import '../styles/pages/blog.css'
-
-function Blog(): JSX.Element {
-  return (
-    <section className="blog">
-      <div className="container">
-        <h1>Blog Legal</h1>
-      </div>
-    </section>
-  )
-}
-
-export default Blog
-```
-
-2. **Crear estilos**:
-```css
-/* frontend/src/styles/pages/blog.css */
-.blog {
-  padding: var(--spacing-4xl) 0;
-}
-```
-
-3. **Agregar ruta** (`frontend/src/App.tsx`):
-```tsx
-import Blog from './pages/Blog'
-
-<Route path="/blog" element={<Blog />} />
-```
-
-4. **Agregar link en Header** (`frontend/src/components/layout/Header.tsx`)
 
 ---
 
 ## Solución de Problemas
 
 ### Error: "Cannot find module"
+
 ```bash
 rm -rf node_modules package-lock.json
-npm run install:all
+npm install
 ```
 
 ### Error: Puerto en uso
+
 ```bash
 # Ver qué usa el puerto
 lsof -i :3000
-lsof -i :5000
 
 # Matar proceso
 kill -9 <PID>
-
-# O cambiar puerto en .env
-PORT=5001
 ```
 
-### Error: CORS
-Verificar proxy en `frontend/vite.config.ts`:
-```typescript
-proxy: {
-  '/api': {
-    target: 'http://localhost:5000',
-    changeOrigin: true,
-  },
-},
-```
+### Error: Prisma no conecta
 
-### Docker: MySQL no conecta
+1. Verificar que DATABASE_URL sea correcta
+2. Verificar que la IP esté permitida en Neon
+3. Regenerar cliente:
 ```bash
-# Ver logs
-docker-compose -f docker-compose.dev.yml logs mysql
-
-# Reiniciar
-docker-compose -f docker-compose.dev.yml down
-docker-compose -f docker-compose.dev.yml up -d
+npx prisma generate
 ```
 
-### WhatsApp: No muestra QR
-- Verificar que Chromium esté instalado
-- En Linux:
+### Error: Build falla en Vercel
+
+1. Verificar que todas las variables de entorno estén configuradas
+2. Ver logs en Vercel dashboard
+3. Probar build local:
 ```bash
-sudo apt-get install chromium-browser
+npm run build
 ```
-
----
-
-## Comandos Útiles
-
-| Comando | Descripción |
-|---------|-------------|
-| `npm run dev` | Frontend + Backend |
-| `npm run dev:frontend` | Solo frontend |
-| `npm run dev:backend` | Solo backend |
-| `npm run build` | Build producción |
-| `npm run install:all` | Instalar todo |
-| `docker-compose up -d` | Iniciar Docker |
-| `docker-compose down` | Detener Docker |
-| `docker-compose logs -f` | Ver logs |
 
 ---
 
@@ -383,37 +250,57 @@ sudo apt-get install chromium-browser
 
 ```
 Abogados/
-├── package.json              # Comandos raíz
-├── docker-compose.yml        # Docker producción
-├── docker-compose.dev.yml    # Docker desarrollo
+├── app/
+│   ├── layout.tsx            # Layout principal
+│   ├── page.tsx              # Página de inicio
+│   ├── globals.css           # Estilos globales
+│   └── api/
+│       ├── contact/route.ts  # API contacto
+│       ├── config/route.ts   # API configuración
+│       └── health/route.ts   # Health check
 │
-├── frontend/
-│   ├── vite.config.ts        # Config Vite + proxy
-│   ├── tsconfig.json         # Config TypeScript
-│   └── src/
-│       ├── App.tsx           # Rutas
-│       ├── main.tsx          # Entry point
-│       └── styles/
-│           └── variables.css # Variables CSS
+├── components/
+│   ├── layout/
+│   │   ├── Header.tsx
+│   │   └── Footer.tsx
+│   ├── sections/
+│   │   ├── Hero.tsx
+│   │   ├── Services.tsx
+│   │   ├── About.tsx
+│   │   ├── Stats.tsx
+│   │   ├── CTA.tsx
+│   │   └── Contact.tsx
+│   └── common/
+│       └── WhatsAppButton.tsx
 │
-├── backend/
-│   ├── .env.example          # Variables ejemplo
-│   ├── tsconfig.json         # Config TypeScript
-│   └── src/
-│       ├── index.ts          # Entry point
-│       └── config/index.ts   # Configuración
+├── lib/
+│   ├── prisma.ts             # Cliente Prisma
+│   ├── config.ts             # Configuración
+│   ├── storage.ts            # Almacenamiento
+│   └── validation.ts         # Validación Zod
 │
-└── database/
-    └── init/01-schema.sql    # SQL inicial
+├── prisma/
+│   └── schema.prisma         # Schema BD
+│
+├── styles/
+│   └── variables.css         # Variables CSS
+│
+├── types/
+│   └── index.ts              # TypeScript types
+│
+├── .env.example              # Template variables
+├── next.config.js            # Config Next.js
+├── package.json
+└── tsconfig.json
 ```
 
 ---
 
 ## Próximos Pasos
 
-1. Personalizar datos de contacto
-2. Ajustar colores en variables.css
-3. Modificar textos y servicios
-4. Probar formulario de contacto
-5. (Opcional) Activar WhatsApp
-6. (Opcional) Configurar Docker + MySQL
+1. Configurar base de datos en Neon
+2. Personalizar datos de contacto
+3. Ajustar colores en variables.css
+4. Modificar textos y servicios
+5. Deploy en Vercel
+6. Configurar dominio personalizado

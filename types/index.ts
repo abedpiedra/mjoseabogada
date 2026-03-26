@@ -51,29 +51,6 @@ export interface ApiResponse<T = unknown> {
   errors?: Array<{ msg: string; path: string }>
 }
 
-// WhatsApp types
-export interface WhatsAppConfig {
-  sessionPath: string
-  autoReplyEnabled: boolean
-  autoReplyMessage: string
-}
-
-export interface WhatsAppStatus {
-  initialized: boolean
-  ready: boolean
-  autoReplyEnabled: boolean
-}
-
-export interface WhatsAppMessageResult {
-  success: boolean
-  reason?: string
-}
-
-export interface WhatsAppMessage {
-  phone: string
-  message: string
-}
-
 // Public config from backend
 export interface PublicConfig {
   contact: {

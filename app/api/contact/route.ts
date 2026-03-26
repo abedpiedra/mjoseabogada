@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { contactFormSchema } from '@/lib/validation'
 import { saveContactSubmission } from '@/lib/storage'
-import { sendWhatsAppNotification } from '@/lib/whatsapp/service'
 
 export async function POST(request: NextRequest) {
   try {
@@ -32,16 +31,8 @@ export async function POST(request: NextRequest) {
       timestamp: new Date().toISOString(),
     }
 
-    // Save submission to storage (file or database)
+    // Save submission to storage (database)
     await saveContactSubmission(submission)
-
-    // Send WhatsApp notification (optional)
-    try {
-      await sendWhatsAppNotification(submission)
-    } catch (whatsappError) {
-      console.error('WhatsApp notification failed:', (whatsappError as Error).message)
-      // Don't fail the request if WhatsApp fails
-    }
 
     return NextResponse.json({
       success: true,

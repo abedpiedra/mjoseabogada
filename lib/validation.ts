@@ -26,16 +26,4 @@ export const contactFormSchema = z.object({
     .optional(),
 })
 
-export const whatsappMessageSchema = z.object({
-  phone: z
-    .string()
-    .min(1, 'El teléfono es requerido')
-    .regex(/^\+?[1-9]\d{6,14}$/, 'Formato de teléfono inválido'),
-  message: z
-    .string()
-    .min(1, 'El mensaje es requerido')
-    .max(4096, 'El mensaje es demasiado largo'),
-})
-
 export type ContactFormInput = z.infer<typeof contactFormSchema>
-export type WhatsAppMessageInput = z.infer<typeof whatsappMessageSchema>

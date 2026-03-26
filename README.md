@@ -1,251 +1,167 @@
 # Asesoría Legal - María José Solorza Salas
 
-Plataforma web profesional para servicios de asesoría legal con integración de WhatsApp, panel administrativo y gestión de clientes.
-
-## Visión del Proyecto
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                    CLIENTE                               │
-│  Landing → Consulta → Agenda cita → Paga → Portal       │
-└─────────────────────────────────────────────────────────┘
-                           │
-                           ▼
-┌─────────────────────────────────────────────────────────┐
-│                   WHATSAPP BOT                          │
-│  Auto-respuesta → Menú → Recordatorios → Seguimiento    │
-└─────────────────────────────────────────────────────────┘
-                           │
-                           ▼
-┌─────────────────────────────────────────────────────────┐
-│                  PANEL ADMIN                            │
-│  CRM → Calendario → Documentos → Reportes → Pagos      │
-└─────────────────────────────────────────────────────────┘
-```
+Plataforma web profesional para servicios de asesoría legal.
 
 ## Tecnologías
 
 | Capa | Tecnología |
 |------|------------|
-| Frontend | React 18 + TypeScript + Vite |
-| Backend | Node.js + Express + TypeScript |
-| Base de datos | MySQL 8.0 (fallback JSON) |
-| Mensajería | WhatsApp Web API |
-| Contenedores | Docker + Docker Compose |
+| Framework | Next.js 14 (App Router) |
+| Frontend | React 18 + TypeScript |
+| Backend | Next.js API Routes |
+| Base de datos | PostgreSQL (Neon) |
+| ORM | Prisma |
+| Validación | Zod |
+| Deploy | Vercel |
 
 ## Estructura del Proyecto
 
 ```
 Abogados/
-├── frontend/                  # React + TypeScript
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── common/        # Reutilizables
-│   │   │   ├── layout/        # Header, Footer
-│   │   │   └── sections/      # Secciones landing
-│   │   ├── pages/             # Páginas
-│   │   ├── services/          # API calls
-│   │   ├── styles/            # CSS modular
-│   │   └── types/             # TypeScript
-│   ├── Dockerfile
-│   └── package.json
+├── app/                      # Next.js App Router
+│   ├── layout.tsx            # Root layout
+│   ├── page.tsx              # Home page
+│   ├── globals.css           # Estilos globales
+│   └── api/                  # API Routes
+│       ├── contact/          # Formulario contacto
+│       ├── config/           # Configuración pública
+│       └── health/           # Health check
 │
-├── backend/                   # Node.js + Express
-│   ├── src/
-│   │   ├── config/            # Configuración
-│   │   ├── controllers/       # Lógica
-│   │   ├── routes/            # Endpoints
-│   │   ├── services/          # WhatsApp, DB
-│   │   └── types/             # TypeScript
-│   ├── Dockerfile
-│   └── package.json
+├── components/
+│   ├── layout/               # Header, Footer
+│   ├── sections/             # Hero, Services, About, etc.
+│   └── common/               # WhatsAppButton
 │
-├── database/init/             # SQL inicial
-├── docker-compose.yml         # Producción
-├── docker-compose.dev.yml     # Desarrollo
-└── package.json               # Comandos raíz
+├── lib/                      # Utilidades
+│   ├── prisma.ts             # Cliente Prisma
+│   ├── config.ts             # Configuración
+│   ├── storage.ts            # Almacenamiento
+│   └── validation.ts         # Schemas Zod
+│
+├── prisma/
+│   └── schema.prisma         # Schema PostgreSQL
+│
+└── types/                    # TypeScript interfaces
 ```
 
 ## Requisitos
 
 - Node.js 18+
 - npm 9+
-- Docker y Docker Compose (opcional)
-- MySQL 8.0 (opcional)
+- Cuenta en [Neon](https://neon.tech) (base de datos gratuita)
+- Cuenta en [Vercel](https://vercel.com) (deploy gratuito)
 
-## Instalación Rápida
+## Instalación Local
 
 ```bash
-# Clonar e instalar
-cd Abogados
-npm run install:all
+# 1. Instalar dependencias
+npm install
 
-# Configurar backend
-cp backend/.env.example backend/.env
+# 2. Configurar variables de entorno
+cp .env.example .env.local
+# Editar .env.local con tus datos de Neon
 
-# Ejecutar
+# 3. Sincronizar base de datos
+npx prisma db push
+
+# 4. Ejecutar
 npm run dev
 ```
 
-## Desarrollo
+Acceder a: http://localhost:3000
 
-### Sin Docker (usa JSON como storage)
-
-```bash
-npm run dev
-```
-
-### Con Docker + MySQL
-
-```bash
-# Terminal 1: MySQL + phpMyAdmin
-docker-compose -f docker-compose.dev.yml up -d
-
-# Terminal 2: App
-npm run dev
-```
-
-### Comandos disponibles
-
-| Comando | Descripción |
-|---------|-------------|
-| `npm run dev` | Frontend + Backend juntos |
-| `npm run dev:frontend` | Solo frontend (puerto 3000) |
-| `npm run dev:backend` | Solo backend (puerto 5000) |
-| `npm run install:all` | Instalar todo |
-| `npm run build` | Build producción |
-
-## Acceso en Red Local
-
-El proyecto está configurado para acceso desde otros dispositivos:
-
-```bash
-# Ver tu IP
-ip addr | grep inet   # Linux
-ipconfig              # Windows
-
-# Ejecutar y acceder desde otro dispositivo
-npm run dev
-# http://TU_IP:3000
-```
-
-## Docker Producción
-
-```bash
-# Construir y ejecutar
-docker-compose up -d --build
-
-# Ver logs
-docker-compose logs -f
-
-# Detener
-docker-compose down
-```
-
-| Servicio | Puerto |
-|----------|--------|
-| Frontend | 80 |
-| Backend | 5000 |
-| MySQL | 3306 |
-| phpMyAdmin (dev) | 8080 |
-
-## Configuración
-
-### Variables de Entorno (backend/.env)
+## Variables de Entorno
 
 ```env
-# Servidor
-PORT=5000
-HOST=0.0.0.0
-NODE_ENV=development
-
-# Base de datos
-DB_HOST=localhost
-DB_PORT=3306
-DB_NAME=asesoria_legal
-DB_USER=asesoria
-DB_PASSWORD=asesoria123
-
-# WhatsApp
-WHATSAPP_SESSION_PATH=./whatsapp-session
-AUTO_REPLY_ENABLED=true
-AUTO_REPLY_MESSAGE=Gracias por contactarnos.
+# Base de datos (Neon PostgreSQL)
+DATABASE_URL="postgresql://user:pass@host/db?sslmode=require"
+DIRECT_URL="postgresql://user:pass@host/db?sslmode=require"
 
 # Contacto
 CONTACT_PHONE=+56912345678
 CONTACT_EMAIL=contacto@ejemplo.cl
 ```
 
+## Deploy en Vercel
+
+### 1. Crear base de datos en Neon
+
+1. Ir a [neon.tech](https://neon.tech)
+2. Crear proyecto
+3. Copiar `DATABASE_URL` y `DIRECT_URL`
+
+### 2. Deploy en Vercel
+
+1. Ir a [vercel.com](https://vercel.com)
+2. Importar repositorio de GitHub
+3. Configurar variables de entorno:
+   - `DATABASE_URL`
+   - `DIRECT_URL`
+   - `CONTACT_PHONE`
+   - `CONTACT_EMAIL`
+4. Deploy
+
+### 3. Migrar base de datos
+
+```bash
+npx prisma db push
+```
+
+## Comandos
+
+| Comando | Descripción |
+|---------|-------------|
+| `npm run dev` | Servidor desarrollo (puerto 3000) |
+| `npm run build` | Build producción |
+| `npm run start` | Iniciar producción |
+| `npx prisma studio` | GUI base de datos |
+| `npx prisma db push` | Sincronizar schema |
+
 ## Funcionalidades
 
 ### Actuales
-- [x] Landing page responsive
-- [x] Formulario de contacto
-- [x] Botón WhatsApp
-- [x] API REST
-- [x] Almacenamiento MySQL/JSON
-- [x] Docker ready
-
-### En desarrollo
-- [ ] Panel administrativo
-- [ ] Autenticación admin
-- [ ] CRM básico (gestión de leads)
-- [ ] Bot WhatsApp inteligente
+- Landing page responsive
+- Formulario de contacto con validación
+- Botón WhatsApp flotante
+- Almacenamiento en PostgreSQL
+- API REST con validación Zod
 
 ### Futuras
-- [ ] Sistema de citas
-- [ ] Portal de clientes
-- [ ] Blog legal
-- [ ] Pagos online
-- [ ] Reportes y analytics
+- Panel administrativo
+- Autenticación admin
+- CRM básico
+- Sistema de citas
+- Portal de clientes
 
 ## API Endpoints
 
-### Contacto
 | Método | Endpoint | Descripción |
 |--------|----------|-------------|
 | POST | `/api/contact` | Enviar formulario |
-
-### WhatsApp
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| GET | `/api/whatsapp/status` | Estado conexión |
-| POST | `/api/whatsapp/initialize` | Iniciar (QR) |
-| POST | `/api/whatsapp/send` | Enviar mensaje |
-| POST | `/api/whatsapp/disconnect` | Desconectar |
-
-### Sistema
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| GET | `/api/health` | Estado servidor |
+| GET | `/api/config` | Configuración pública |
+| GET | `/api/health` | Estado del servidor |
 
 ## Base de Datos
 
 ### Tablas
 
-```sql
-contact_submissions  -- Formularios de contacto
-whatsapp_messages    -- Log de mensajes
-services             -- Servicios ofrecidos
 ```
-
-### Fallback
-
-Si MySQL no está disponible, usa `backend/logs/submissions.json`.
+contact_submissions  # Formularios de contacto
+services             # Servicios ofrecidos
+```
 
 ## Personalización
 
 ### Datos de contacto
-- `frontend/src/components/common/WhatsAppButton.tsx`
-- `frontend/src/components/sections/Contact.tsx`
-- `backend/.env`
+- `components/sections/Contact.tsx`
+- Variables de entorno
 
 ### Colores y estilos
-- `frontend/src/styles/variables.css`
+- `styles/variables.css`
+- `app/globals.css`
 
 ### Servicios
-- `frontend/src/components/sections/Services.tsx`
-- `database/init/01-schema.sql`
+- `components/sections/Services.tsx`
 
 ## Documentación
 
