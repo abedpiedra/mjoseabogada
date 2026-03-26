@@ -1,0 +1,41 @@
+import { z } from 'zod'
+
+export const contactFormSchema = z.object({
+  nombre: z
+    .string()
+    .min(2, 'El nombre debe tener al menos 2 caracteres')
+    .max(100, 'El nombre no puede exceder 100 caracteres')
+    .trim(),
+  email: z
+    .string()
+    .email('El email no es válido')
+    .max(100, 'El email no puede exceder 100 caracteres')
+    .trim()
+    .toLowerCase(),
+  telefono: z
+    .string()
+    .regex(/^(\+?56)?(\s?)(0?9)(\s?)[98765432]\d{7}$/, 'El teléfono no es válido')
+    .optional()
+    .or(z.literal('')),
+  servicio: z
+    .enum(['', 'familia', 'contratos', 'laboral', 'inmobiliario', 'herencias', 'otro'])
+    .optional(),
+  mensaje: z
+    .string()
+    .max(2000, 'El mensaje no puede exceder 2000 caracteres')
+    .optional(),
+})
+
+export const whatsappMessageSchema = z.object({
+  phone: z
+    .string()
+    .min(1, 'El teléfono es requerido')
+    .regex(/^\+?[1-9]\d{6,14}$/, 'Formato de teléfono inválido'),
+  message: z
+    .string()
+    .min(1, 'El mensaje es requerido')
+    .max(4096, 'El mensaje es demasiado largo'),
+})
+
+export type ContactFormInput = z.infer<typeof contactFormSchema>
+export type WhatsAppMessageInput = z.infer<typeof whatsappMessageSchema>

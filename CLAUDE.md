@@ -8,9 +8,12 @@ Plataforma web de asesoría legal para **María José Solorza Salas**:
 
 | Componente | Tecnología |
 |------------|------------|
-| Frontend | React 18 + TypeScript + Vite |
-| Backend | Node.js + Express + TypeScript |
+| Framework | Next.js 14+ (App Router) |
+| Frontend | React 18 + TypeScript |
+| Backend | Next.js API Routes |
 | Base de datos | MySQL 8.0 (fallback JSON) |
+| ORM | Prisma |
+| Validación | Zod |
 | Mensajería | WhatsApp Web API (whatsapp-web.js) |
 | Contenedores | Docker + Docker Compose |
 
@@ -47,71 +50,94 @@ FASE 4 (Futuro): Portal Clientes
 
 ```
 Abogados/
-├── frontend/                  # React App
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── common/        # Reutilizables (Button, Modal, etc)
-│   │   │   ├── layout/        # Header, Footer, Layout, Sidebar
-│   │   │   └── sections/      # Hero, Services, About, Contact
-│   │   ├── pages/             # Home, Admin (futuro)
-│   │   ├── services/          # api.ts (llamadas HTTP)
-│   │   ├── hooks/             # Custom hooks
-│   │   ├── utils/             # Helpers
-│   │   ├── types/             # TypeScript interfaces
-│   │   └── styles/
-│   │       ├── variables.css  # Variables globales
-│   │       ├── global.css     # Reset y base
-│   │       ├── components/    # CSS por componente
-│   │       └── pages/         # CSS por página
-│   ├── Dockerfile
-│   ├── nginx.conf
-│   └── package.json
+├── app/                          # Next.js App Router
+│   ├── layout.tsx                # Root layout (Header + Footer)
+│   ├── page.tsx                  # Home page (/)
+│   ├── globals.css               # Estilos globales
+│   └── api/                      # API Routes
+│       ├── contact/route.ts      # POST /api/contact
+│       ├── config/route.ts       # GET /api/config
+│       ├── health/route.ts       # GET /api/health
+│       └── whatsapp/
+│           ├── status/route.ts
+│           ├── initialize/route.ts
+│           ├── disconnect/route.ts
+│           └── send/route.ts
 │
-├── backend/                   # API Node.js
-│   ├── src/
-│   │   ├── config/            # Configuración (.env)
-│   │   ├── controllers/       # Lógica de endpoints
-│   │   ├── middleware/        # Auth, validation, etc
-│   │   ├── routes/            # Definición de rutas
-│   │   ├── services/          # database.ts, whatsapp.ts, storage.ts
-│   │   └── types/             # TypeScript interfaces
-│   ├── Dockerfile
-│   └── package.json
+├── components/
+│   ├── layout/
+│   │   ├── Header.tsx            # Client Component
+│   │   └── Footer.tsx            # Server Component
+│   ├── sections/
+│   │   ├── Hero.tsx              # Client Component
+│   │   ├── Services.tsx          # Client Component
+│   │   ├── About.tsx             # Server Component
+│   │   ├── Stats.tsx             # Server Component
+│   │   ├── CTA.tsx               # Client Component
+│   │   └── Contact.tsx           # Client Component
+│   └── common/
+│       └── WhatsAppButton.tsx    # Client Component
+│
+├── lib/
+│   ├── prisma.ts                 # Prisma client singleton
+│   ├── config.ts                 # Configuración
+│   ├── storage.ts                # Servicio de almacenamiento
+│   ├── validation.ts             # Schemas Zod
+│   └── whatsapp/
+│       ├── client.ts             # WhatsApp client singleton
+│       └── service.ts            # Funciones del servicio
+│
+├── types/
+│   └── index.ts                  # TypeScript interfaces
+│
+├── styles/
+│   └── variables.css             # Variables CSS
+│
+├── prisma/
+│   └── schema.prisma             # Schema Prisma
 │
 ├── database/
-│   └── init/                  # Scripts SQL iniciales
+│   └── init/                     # Scripts SQL iniciales
 │
-├── docker-compose.yml         # Producción
-├── docker-compose.dev.yml     # Desarrollo (MySQL + phpMyAdmin)
-├── package.json               # Comandos raíz
-├── README.md
-├── SETUP.md
-└── CLAUDE.md
+├── public/                       # Assets estáticos
+│
+├── docker-compose.yml            # Producción (2 contenedores)
+├── docker-compose.dev.yml        # Desarrollo (MySQL + phpMyAdmin)
+├── Dockerfile                    # Next.js con Chromium
+├── next.config.js
+├── package.json
+├── tsconfig.json
+├── .env.local                    # Variables de entorno
+└── .env.example                  # Template de variables
 ```
 
 ## Comandos Principales
 
 ```bash
 # Desarrollo
-npm run dev              # Frontend + Backend
-npm run dev:frontend     # Solo frontend (3000)
-npm run dev:backend      # Solo backend (5000)
+npm install              # Instalar dependencias
+npm run dev              # Next.js dev server (puerto 3000)
 
 # Docker
-docker-compose -f docker-compose.dev.yml up -d   # MySQL dev
+docker-compose -f docker-compose.dev.yml up -d   # MySQL + phpMyAdmin
 docker-compose up -d --build                      # Producción
 
 # Build
-npm run build            # Build todo
-npm run install:all      # Instalar dependencias
+npm run build            # Build Next.js
+npm run start            # Start producción
+
+# Prisma
+npx prisma generate      # Generar cliente
+npx prisma migrate dev   # Crear migración
+npx prisma studio        # GUI de base de datos
 ```
 
 ## Convenciones de Código
 
 ### TypeScript
 ```typescript
-// Usar tipos estrictos
-import type { ContactFormData } from '../types'
+// Usar tipos estrictos con path aliases
+import type { ContactFormData } from '@/types'
 
 // Interfaces en types/index.ts
 export interface ContactFormData {
@@ -120,117 +146,97 @@ export interface ContactFormData {
   telefono?: string  // Opcional con ?
 }
 
-// Funciones con tipos explícitos
-function handleSubmit(data: ContactFormData): Promise<void> {
-  // ...
-}
+// Validación con Zod
+import { z } from 'zod'
+
+export const contactFormSchema = z.object({
+  nombre: z.string().min(2).max(100),
+  email: z.string().email(),
+})
 ```
 
-### React/TSX
+### React/Next.js
 ```tsx
-// Componentes funcionales tipados
-function Button({ children, onClick }: ButtonProps): JSX.Element {
-  return <button onClick={onClick}>{children}</button>
+// Server Components (por defecto, sin 'use client')
+export default function About() {
+  return <section>...</section>
 }
 
-// Props con interface
-interface ButtonProps {
-  children: React.ReactNode
-  onClick?: () => void
-}
+// Client Components (cuando necesitan interactividad)
+'use client'
 
-// Hooks tipados
-const [data, setData] = useState<ContactFormData | null>(null)
+import { useState } from 'react'
+
+export default function Contact() {
+  const [formData, setFormData] = useState({})
+  return <form>...</form>
+}
 ```
 
 ### CSS
 ```css
-/* Variables en variables.css */
+/* Variables en styles/variables.css */
 :root {
-  --color-primary: #1a365d;
+  --color-primary: #7A2A3C;
   --spacing-md: 1rem;
 }
 
-/* BEM naming */
+/* BEM naming en globals.css */
 .component {}
 .component__element {}
 .component__element--modifier {}
-
-/* Un archivo por componente */
-/* styles/components/button.css */
 ```
 
-### Archivos
-- Componentes: `PascalCase.tsx` → `Header.tsx`
-- Servicios: `camelCase.ts` → `api.ts`
-- Estilos: `kebab-case.css` → `whatsapp-button.css`
-- Types: `index.ts` en carpeta types
+### Path Aliases (tsconfig.json)
+```typescript
+import Header from '@/components/layout/Header'
+import { prisma } from '@/lib/prisma'
+import type { ContactFormData } from '@/types'
+```
 
 ## Patrones de Desarrollo
 
 ### Agregar Nueva Página
 
-1. Crear componente:
 ```tsx
-// frontend/src/pages/Admin.tsx
-import '../styles/pages/admin.css'
-
-function Admin(): JSX.Element {
-  return <div className="admin">...</div>
-}
-
-export default Admin
-```
-
-2. Crear estilos:
-```css
-/* frontend/src/styles/pages/admin.css */
-.admin { ... }
-```
-
-3. Agregar ruta:
-```tsx
-// frontend/src/App.tsx
-import Admin from './pages/Admin'
-
-<Route path="/admin" element={<Admin />} />
-```
-
-### Agregar Nuevo Endpoint
-
-1. Crear controller:
-```typescript
-// backend/src/controllers/admin.ts
-export async function getSubmissions(req: Request, res: Response) {
-  // ...
+// app/admin/page.tsx
+export default function AdminPage() {
+  return <div>Admin Dashboard</div>
 }
 ```
 
-2. Crear ruta:
-```typescript
-// backend/src/routes/admin.ts
-router.get('/submissions', getSubmissions)
-```
+### Agregar Nuevo Endpoint API
 
-3. Registrar en index:
 ```typescript
-// backend/src/index.ts
-import adminRoutes from './routes/admin.js'
-app.use('/api/admin', adminRoutes)
-```
+// app/api/ejemplo/route.ts
+import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 
-4. Agregar al frontend:
-```typescript
-// frontend/src/services/api.ts
-export async function getSubmissions() {
-  const res = await fetch('/api/admin/submissions')
-  return res.json()
+const schema = z.object({
+  campo: z.string(),
+})
+
+export async function GET() {
+  return NextResponse.json({ data: 'ejemplo' })
+}
+
+export async function POST(request: NextRequest) {
+  const body = await request.json()
+  const result = schema.safeParse(body)
+
+  if (!result.success) {
+    return NextResponse.json(
+      { success: false, errors: result.error.errors },
+      { status: 400 }
+    )
+  }
+
+  return NextResponse.json({ success: true })
 }
 ```
 
 ### Agregar Nuevo Componente
 
-1. Crear en carpeta apropiada:
 ```
 components/
 ├── common/     → Reutilizables (Button, Modal, Input)
@@ -238,103 +244,75 @@ components/
 └── sections/   → Secciones página (Hero, Services)
 ```
 
-2. Crear CSS correspondiente en `styles/components/`
-
-3. Exportar e importar donde se necesite
-
 ## Variables de Entorno
 
-### Backend (.env)
+### .env.local
 ```env
-# Servidor
-PORT=5000
-HOST=0.0.0.0
-NODE_ENV=development
-
 # Base de datos
-DB_HOST=localhost
-DB_PORT=3306
-DB_NAME=asesoria_legal
-DB_USER=asesoria
-DB_PASSWORD=asesoria123
-
-# WhatsApp
-WHATSAPP_SESSION_PATH=./whatsapp-session
-AUTO_REPLY_ENABLED=true
-AUTO_REPLY_MESSAGE=Gracias por contactarnos.
+DATABASE_URL="mysql://user:pass@localhost:3306/asesoria_legal"
 
 # Contacto
 CONTACT_PHONE=+56912345678
 CONTACT_EMAIL=contacto@ejemplo.cl
 
-# Admin (futuro)
-ADMIN_EMAIL=admin@ejemplo.cl
-ADMIN_PASSWORD=hash_seguro
-JWT_SECRET=secreto_jwt
+# WhatsApp
+WHATSAPP_SESSION_PATH=./whatsapp-session
+AUTO_REPLY_ENABLED=true
+AUTO_REPLY_MESSAGE=Gracias por contactarnos.
 ```
 
 ## Base de Datos
 
-### Tablas Actuales
-```sql
-contact_submissions  -- Formularios recibidos
-whatsapp_messages    -- Log de mensajes
-services             -- Servicios ofrecidos
+### Modelos Prisma
+```prisma
+model ContactSubmission  # Formularios recibidos
+model WhatsAppMessage    # Log de mensajes
+model Service            # Servicios ofrecidos
 ```
 
-### Tablas Futuras (Panel Admin)
-```sql
-users                -- Usuarios admin
-clients              -- Clientes
-appointments         -- Citas
-documents            -- Documentos
+### Ejecutar Migraciones
+```bash
+npx prisma migrate dev --name nombre_migracion
+npx prisma generate
 ```
 
 ## Próximos Pasos (Panel Admin)
 
 ### 1. Autenticación
-- [ ] Tabla `users` en MySQL
-- [ ] Endpoint `POST /api/auth/login`
-- [ ] JWT tokens
-- [ ] Middleware `authRequired`
+- [ ] Modelo `User` en Prisma
+- [ ] API Route `POST /api/auth/login`
+- [ ] NextAuth.js o JWT
+- [ ] Middleware de autenticación
 - [ ] Página `/admin/login`
 
 ### 2. Dashboard
-- [ ] Endpoint `GET /api/admin/stats`
+- [ ] API Route `GET /api/admin/stats`
 - [ ] Página `/admin/dashboard`
 - [ ] Componentes: StatsCard, RecentList
 
 ### 3. Gestión Consultas
-- [ ] Endpoint `GET /api/admin/submissions`
-- [ ] Endpoint `PATCH /api/admin/submissions/:id`
+- [ ] API Route `GET /api/admin/submissions`
+- [ ] API Route `PATCH /api/admin/submissions/[id]`
 - [ ] Página `/admin/consultas`
 - [ ] Filtros por estado
-- [ ] Cambio de estado
-
-### 4. WhatsApp desde Panel
-- [ ] Enviar mensaje desde detalle
-- [ ] Ver historial de conversación
-- [ ] Templates de respuesta
 
 ## Notas para Claude
 
 ### Hacer
 - Mantener TypeScript estricto
 - Seguir estructura de carpetas
-- CSS modular (no inline excepto estados)
-- Componentes pequeños y enfocados
-- Validación con express-validator
+- Usar `'use client'` solo cuando necesario
+- Validación con Zod en API routes
 - Respuestas API: `{ success, message, data?, errors? }`
 - Usar variables CSS existentes
-- Documentar cambios importantes
+- Path aliases (@/components, @/lib, etc.)
 
 ### No hacer
 - No usar `any` en TypeScript
-- No mezclar lógica de negocio en componentes
-- No estilos inline permanentes
+- No crear Client Components innecesarios
 - No hardcodear valores (usar .env)
-- No commits sin probar
 - No ignorar errores de TypeScript
+- No mezclar lógica de negocio en componentes
 
 ### Formato de respuestas API
 ```typescript
